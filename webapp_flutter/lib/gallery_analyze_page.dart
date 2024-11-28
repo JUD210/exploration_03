@@ -1,3 +1,5 @@
+// gallery_analyze_page.dart
+
 import 'package:flutter/material.dart';
 import 'photo.dart';
 import 'photo_analyze_page.dart';
@@ -5,6 +7,7 @@ import 'camera.dart';
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart'; // For image picking
 
 class GalleryAnalyzePage extends StatefulWidget {
   final CameraDescription camera;
@@ -21,10 +24,12 @@ class _GalleryAnalyzePageState extends State<GalleryAnalyzePage> {
   final Set<int> _selectedPhotos = {}; // 삭제 모드에서 선택된 사진의 ID를 저장하는 집합
   int _nextPhotoId = 1; // 새로운 사진의 ID를 관리하는 변수
 
+  final ImagePicker _picker = ImagePicker(); // Image picker instance
+
   @override
   void initState() {
     super.initState();
-    debugPrint('Initializing GalleryPage...'); // Debugging log
+    debugPrint('Initializing GalleryAnalyzePage...'); // Debugging log
     _loadPhotos(); // 로컬 저장소에서 저장된 사진들을 불러옵니다.
   }
 
@@ -63,7 +68,7 @@ class _GalleryAnalyzePageState extends State<GalleryAnalyzePage> {
       _photos.add(Photo(
           id: _nextPhotoId,
           url: imagePath,
-          title: 'New Photo ${_nextPhotoId.toString()}'));
+          title: 'Photo ${_nextPhotoId.toString()}'));
       _nextPhotoId++;
     });
     await _savePhotos(); // 변경된 사진 목록 저장
@@ -86,10 +91,22 @@ class _GalleryAnalyzePageState extends State<GalleryAnalyzePage> {
         'Selected photos deleted and saved to local storage.'); // Debugging log
   }
 
+  /// 사진을 업로드하는 함수
+  Future<void> _uploadPhoto() async {
+    debugPrint('Opening image picker...'); // Debugging log
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      debugPrint('Picked image path: ${image.path}'); // Debugging log
+      await _addPhoto(image.path); // 선택한 사진을 갤러리에 추가합니다.
+    } else {
+      debugPrint('No image selected.'); // Debugging log
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        'Building GalleryPage with ${_photos.length} photos'); // Debugging log
+        'Building GalleryAnalyzePage with ${_photos.length} photos'); // Debugging log
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo Analyze Page'),
@@ -103,22 +120,39 @@ class _GalleryAnalyzePageState extends State<GalleryAnalyzePage> {
               });
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.camera_alt),
-            onPressed: () async {
-              /// 카메라 페이지로 이동하여 사진을 찍고 경로를 받아옵니다.
-              debugPrint('Navigating to camera page...'); // Debugging log
-              final imagePath = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      TakePictureScreen(camera: widget.camera),
-                ),
-              );
-              if (imagePath != null) {
-                debugPrint('Received image path: $imagePath'); // Debugging log
-                await _addPhoto(imagePath); // 찍은 사진을 갤러리에 추가합니다.
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'camera') {
+                /// 카메라 페이지로 이동하여 사진을 찍고 경로를 받아옵니다.
+                debugPrint('Navigating to camera page...'); // Debugging log
+                final imagePath = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        TakePictureScreen(camera: widget.camera),
+                  ),
+                );
+                if (imagePath != null) {
+                  debugPrint(
+                      'Received image path: $imagePath'); // Debugging log
+                  await _addPhoto(imagePath); // 찍은 사진을 갤러리에 추가합니다.
+                }
+              } else if (value == 'upload') {
+                /// 갤러리에서 사진을 선택하여 추가합니다.
+                await _uploadPhoto();
               }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'camera',
+                  child: Text('Take Photo'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'upload',
+                  child: Text('Upload Photo'),
+                ),
+              ];
             },
           ),
         ],
