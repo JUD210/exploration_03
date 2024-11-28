@@ -26,6 +26,7 @@ class PhotoEditPageState extends State<PhotoEditPage> {
   Uint8List? _finalImageBytes; // Final image with background applied
   Uint8List? _backgroundImageBytes; // Background image bytes
   final ImagePicker _picker = ImagePicker(); // For picking images
+  double _blurIntensity = 0.0; // Blur intensity
 
   @override
   Widget build(BuildContext context) {
@@ -90,15 +91,43 @@ class PhotoEditPageState extends State<PhotoEditPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: _selectedColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black),
+                  if (_backgroundImageBytes != null ||
+                      _selectedColor != Colors.white)
+                    Column(
+                      children: [
+                        Text('Adjust Background Blur'),
+                        Slider(
+                          value: _blurIntensity,
+                          min: 0.0,
+                          max: 10.0,
+                          divisions: 20,
+                          label: _blurIntensity.toStringAsFixed(1),
+                          onChanged: _isProcessing
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _blurIntensity = value;
+                                  });
+                                  if (_backgroundImageBytes != null) {
+                                    _applyBackgroundImage(
+                                        _backgroundImageBytes!);
+                                  } else {
+                                    _applyBackgroundColor(_selectedColor);
+                                  }
+                                },
+                        ),
+                      ],
                     ),
-                  ),
+                  if (_selectedColor != Colors.white)
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: _selectedColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black),
+                      ),
+                    ),
                 ],
               ),
             const SizedBox(height: 20),
@@ -180,6 +209,7 @@ class PhotoEditPageState extends State<PhotoEditPage> {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         Uint8List bgImageBytes = await image.readAsBytes();
+        _backgroundImageBytes = bgImageBytes;
         await _applyBackgroundImage(bgImageBytes);
       } else {
         debugPrint('No background image selected.');
@@ -209,6 +239,11 @@ class PhotoEditPageState extends State<PhotoEditPage> {
           background = img.copyResize(background,
               width: foreground.width, height: foreground.height);
 
+          // Apply blur to background
+          if (_blurIntensity > 0) {
+            background = img.gaussianBlur(background, _blurIntensity.toInt());
+          }
+
           // Composite the foreground onto the background
           img.drawImage(background, foreground);
 
@@ -216,7 +251,6 @@ class PhotoEditPageState extends State<PhotoEditPage> {
           Uint8List finalBytes = Uint8List.fromList(img.encodePng(background));
           setState(() {
             _finalImageBytes = finalBytes;
-            _backgroundImageBytes = bgImageBytes;
           });
         } else {
           debugPrint('Error decoding images.');
@@ -278,6 +312,11 @@ class PhotoEditPageState extends State<PhotoEditPage> {
           // Create a new image with the same dimensions and the selected background color
           img.Image background = img.Image(image.width, image.height);
           background.fill(img.getColor(color.red, color.green, color.blue));
+
+          // Apply blur to background color if needed
+          if (_blurIntensity > 0) {
+            background = img.gaussianBlur(background, _blurIntensity.toInt());
+          }
 
           // Composite the foreground image onto the background
           img.drawImage(background, image);
