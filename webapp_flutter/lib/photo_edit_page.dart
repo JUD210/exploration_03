@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart'; // For color picker
 import 'package:image/image.dart' as img; // For image processing
 import 'package:image_picker/image_picker.dart'; // For picking background image
+import 'dart:async'; // For debouncing and Isolates
+import 'package:flutter/foundation.dart'; // For compute function
 
 class PhotoEditPage extends StatefulWidget {
   final Photo photo;
@@ -27,6 +29,7 @@ class PhotoEditPageState extends State<PhotoEditPage> {
   Uint8List? _backgroundImageBytes; // Background image bytes
   final ImagePicker _picker = ImagePicker(); // For picking images
   double _blurIntensity = 0.0; // Blur intensity
+  Timer? _debounce; // Timer for debouncing slider input
 
   @override
   Widget build(BuildContext context) {
@@ -108,12 +111,7 @@ class PhotoEditPageState extends State<PhotoEditPage> {
                                   setState(() {
                                     _blurIntensity = value;
                                   });
-                                  if (_backgroundImageBytes != null) {
-                                    _applyBackgroundImage(
-                                        _backgroundImageBytes!);
-                                  } else {
-                                    _applyBackgroundColor(_selectedColor);
-                                  }
+                                  _onBlurIntensityChanged();
                                 },
                         ),
                       ],
@@ -146,6 +144,17 @@ class PhotoEditPageState extends State<PhotoEditPage> {
         ),
       ),
     );
+  }
+
+  void _onBlurIntensityChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (_backgroundImageBytes != null) {
+        _applyBackgroundImage(_backgroundImageBytes!);
+      } else {
+        _applyBackgroundColor(_selectedColor);
+      }
+    });
   }
 
   Future<void> _removeBackground() async {
@@ -202,9 +211,6 @@ class PhotoEditPageState extends State<PhotoEditPage> {
   }
 
   Future<void> _pickBackgroundImage() async {
-    setState(() {
-      _isProcessing = true;
-    });
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
@@ -216,10 +222,6 @@ class PhotoEditPageState extends State<PhotoEditPage> {
       }
     } catch (e) {
       debugPrint('Error picking background image: $e');
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
     }
   }
 
@@ -230,30 +232,17 @@ class PhotoEditPageState extends State<PhotoEditPage> {
 
     try {
       if (_editedImageBytes != null) {
-        // Decode images
-        img.Image? foreground = img.decodeImage(_editedImageBytes!);
-        img.Image? background = img.decodeImage(bgImageBytes);
-
-        if (foreground != null && background != null) {
-          // Resize background to match foreground size
-          background = img.copyResize(background,
-              width: foreground.width, height: foreground.height);
-
-          // Apply blur to background
-          if (_blurIntensity > 0) {
-            background = img.gaussianBlur(background, _blurIntensity.toInt());
-          }
-
-          // Composite the foreground onto the background
-          img.drawImage(background, foreground);
-
-          // Encode the final image to PNG
-          Uint8List finalBytes = Uint8List.fromList(img.encodePng(background));
+        Uint8List? result = await compute(_processImagesWithBackground, {
+          'foregroundBytes': _editedImageBytes!,
+          'backgroundBytes': bgImageBytes,
+          'blurIntensity': _blurIntensity,
+        });
+        if (result != null) {
           setState(() {
-            _finalImageBytes = finalBytes;
+            _finalImageBytes = result;
           });
         } else {
-          debugPrint('Error decoding images.');
+          debugPrint('Error processing images in isolate.');
         }
       }
     } catch (e) {
@@ -306,28 +295,19 @@ class PhotoEditPageState extends State<PhotoEditPage> {
 
     try {
       if (_editedImageBytes != null) {
-        // Use the 'image' package to process the image
-        img.Image? image = img.decodeImage(_editedImageBytes!);
-        if (image != null) {
-          // Create a new image with the same dimensions and the selected background color
-          img.Image background = img.Image(image.width, image.height);
-          background.fill(img.getColor(color.red, color.green, color.blue));
-
-          // Apply blur to background color if needed
-          if (_blurIntensity > 0) {
-            background = img.gaussianBlur(background, _blurIntensity.toInt());
-          }
-
-          // Composite the foreground image onto the background
-          img.drawImage(background, image);
-
-          // Encode the final image to PNG
-          Uint8List finalBytes = Uint8List.fromList(img.encodePng(background));
+        Uint8List? result = await compute(_processImageWithColor, {
+          'foregroundBytes': _editedImageBytes!,
+          'color': color,
+          'blurIntensity': _blurIntensity,
+        });
+        if (result != null) {
           setState(() {
-            _finalImageBytes = finalBytes;
+            _finalImageBytes = result;
             _selectedColor = color;
             _backgroundImageBytes = null; // Reset background image
           });
+        } else {
+          debugPrint('Error processing image with color in isolate.');
         }
       }
     } catch (e) {
@@ -337,5 +317,74 @@ class PhotoEditPageState extends State<PhotoEditPage> {
         _isProcessing = false;
       });
     }
+  }
+}
+
+// Image processing functions to run in Isolates
+Future<Uint8List?> _processImagesWithBackground(
+    Map<String, dynamic> params) async {
+  try {
+    Uint8List foregroundBytes = params['foregroundBytes'];
+    Uint8List backgroundBytes = params['backgroundBytes'];
+    double blurIntensity = params['blurIntensity'];
+
+    img.Image? foreground = img.decodeImage(foregroundBytes);
+    img.Image? background = img.decodeImage(backgroundBytes);
+
+    if (foreground != null && background != null) {
+      // Resize background to match foreground size
+      background = img.copyResize(background,
+          width: foreground.width, height: foreground.height);
+
+      // Apply blur to background
+      if (blurIntensity > 0) {
+        background = img.gaussianBlur(background, blurIntensity.toInt());
+      }
+
+      // Composite the foreground onto the background
+      img.drawImage(background, foreground);
+
+      // Encode the final image to PNG
+      Uint8List finalBytes = Uint8List.fromList(img.encodePng(background));
+      return finalBytes;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    debugPrint('Error in isolate processing: $e');
+    return null;
+  }
+}
+
+Future<Uint8List?> _processImageWithColor(Map<String, dynamic> params) async {
+  try {
+    Uint8List foregroundBytes = params['foregroundBytes'];
+    Color color = params['color'];
+    double blurIntensity = params['blurIntensity'];
+
+    img.Image? foreground = img.decodeImage(foregroundBytes);
+
+    if (foreground != null) {
+      // Create a new image with the same dimensions and the selected background color
+      img.Image background = img.Image(foreground.width, foreground.height);
+      background.fill(img.getColor(color.red, color.green, color.blue));
+
+      // Apply blur to background color if needed
+      if (blurIntensity > 0) {
+        background = img.gaussianBlur(background, blurIntensity.toInt());
+      }
+
+      // Composite the foreground image onto the background
+      img.drawImage(background, foreground);
+
+      // Encode the final image to PNG
+      Uint8List finalBytes = Uint8List.fromList(img.encodePng(background));
+      return finalBytes;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    debugPrint('Error in isolate processing: $e');
+    return null;
   }
 }
