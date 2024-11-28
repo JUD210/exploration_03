@@ -1,6 +1,8 @@
+// gallery_edit_page.dart
+
 import 'package:flutter/material.dart';
 import 'photo.dart';
-import 'photo_analyze_page.dart';
+import 'photo_edit_page.dart';
 import 'camera.dart';
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,7 +26,7 @@ class _GalleryEditPageState extends State<GalleryEditPage> {
   @override
   void initState() {
     super.initState();
-    debugPrint('Initializing GalleryPage...'); // Debugging log
+    debugPrint('Initializing GalleryEditPage...'); // Debugging log
     _loadPhotos(); // 로컬 저장소에서 저장된 사진들을 불러옵니다.
   }
 
@@ -89,7 +91,7 @@ class _GalleryEditPageState extends State<GalleryEditPage> {
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        'Building GalleryPage with ${_photos.length} photos'); // Debugging log
+        'Building GalleryEditPage with ${_photos.length} photos'); // Debugging log
     return Scaffold(
       appBar: AppBar(
         title: const Text('Photo Edit Page'),
@@ -150,11 +152,11 @@ class _GalleryEditPageState extends State<GalleryEditPage> {
                   } else {
                     /// 사진 상세 페이지로 이동
                     debugPrint(
-                        'Navigating to photo detail page for photo: $photo'); // Debugging log
+                        'Navigating to photo edit page for photo: $photo'); // Debugging log
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PhotoAnalyzePage(photo: photo),
+                        builder: (context) => PhotoEditPage(photo: photo),
                       ),
                     );
                     if (result != null && result is int) {
