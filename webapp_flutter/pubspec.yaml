@@ -51,6 +51,7 @@ dependencies:
   google_generative_ai: ^0.4.6
   file_picker: ^8.1.3
   http_parser: ^4.0.2
+  flutter_launcher_icons: any
 
 dev_dependencies:
   flutter_test:
@@ -107,3 +108,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/cute_no_bg.png"
+#  adaptive_icon_background: "#FFFFFF"
