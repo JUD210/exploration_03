@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'gallery_page.dart';
-import 'calendar_page.dart';
+import 'gallery_analyze_page.dart';
+import 'gallery_edit_page.dart';
 
 //
 Future<void> main() async {
@@ -44,8 +44,8 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pages = [
-      GalleryPage(camera: widget.camera),
-      CalendarPage(),
+      GalleryAnalyzePage(camera: widget.camera),
+      GalleryEditPage(camera: widget.camera),
     ];
   }
 
@@ -62,12 +62,12 @@ class HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.photo_album),
-            label: 'Gallery',
+            icon: Icon(Icons.star),
+            label: 'Analyze',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
+            icon: Icon(Icons.edit),
+            label: 'Edit',
           ),
         ],
         currentIndex: _selectedIndex,

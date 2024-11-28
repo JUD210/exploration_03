@@ -6,16 +6,16 @@ import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-class GalleryPage extends StatefulWidget {
+class GalleryAnalyzePage extends StatefulWidget {
   final CameraDescription camera;
 
-  const GalleryPage({super.key, required this.camera});
+  const GalleryAnalyzePage({super.key, required this.camera});
 
   @override
-  State<GalleryPage> createState() => _GalleryPageState();
+  State<GalleryAnalyzePage> createState() => _GalleryAnalyzePageState();
 }
 
-class _GalleryPageState extends State<GalleryPage> {
+class _GalleryAnalyzePageState extends State<GalleryAnalyzePage> {
   final List<Photo> _photos = []; // 사진 리스트를 관리하는 변수
   bool _isDeleting = false; // 삭제 모드인지 여부를 관리하는 변수
   final Set<int> _selectedPhotos = {}; // 삭제 모드에서 선택된 사진의 ID를 저장하는 집합
@@ -92,7 +92,7 @@ class _GalleryPageState extends State<GalleryPage> {
         'Building GalleryPage with ${_photos.length} photos'); // Debugging log
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Photo Gallery'),
+        title: const Text('Photo Analyze Page'),
         actions: [
           IconButton(
             icon: Icon(_isDeleting ? Icons.cancel : Icons.delete),

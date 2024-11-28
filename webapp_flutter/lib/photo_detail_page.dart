@@ -10,10 +10,10 @@ class PhotoDetailPage extends StatefulWidget {
   const PhotoDetailPage({super.key, required this.photo});
 
   @override
-  _PhotoDetailPageState createState() => _PhotoDetailPageState();
+  PhotoDetailPageState createState() => PhotoDetailPageState();
 }
 
-class _PhotoDetailPageState extends State<PhotoDetailPage> {
+class PhotoDetailPageState extends State<PhotoDetailPage> {
   String _analyzedText = "";
   bool _isAnalyzing = false; // 로딩 상태 관리 변수 추가
 
