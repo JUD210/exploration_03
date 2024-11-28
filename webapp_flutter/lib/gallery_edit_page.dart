@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'photo.dart';
-import 'photo_detail_page.dart';
+import 'photo_analyze_page.dart';
 import 'camera.dart';
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -154,7 +154,7 @@ class _GalleryEditPageState extends State<GalleryEditPage> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PhotoDetailPage(photo: photo),
+                        builder: (context) => PhotoAnalyzePage(photo: photo),
                       ),
                     );
                     if (result != null && result is int) {

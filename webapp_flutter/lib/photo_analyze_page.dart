@@ -5,15 +5,15 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // API 키를 위한 dotenv 가져오기
 
-class PhotoDetailPage extends StatefulWidget {
+class PhotoAnalyzePage extends StatefulWidget {
   final Photo photo;
-  const PhotoDetailPage({super.key, required this.photo});
+  const PhotoAnalyzePage({super.key, required this.photo});
 
   @override
-  PhotoDetailPageState createState() => PhotoDetailPageState();
+  PhotoAnalyzePageState createState() => PhotoAnalyzePageState();
 }
 
-class PhotoDetailPageState extends State<PhotoDetailPage> {
+class PhotoAnalyzePageState extends State<PhotoAnalyzePage> {
   String _analyzedText = "";
   bool _isAnalyzing = false; // 로딩 상태 관리 변수 추가
 
