@@ -10,6 +10,34 @@
 2. 제작한 인물모드 사진들에서 나타나는 문제점을 정확히 지적하였다. 인물사진에서 발생한 문제점을 정확히 지적한 사진을 제출하였다.
 3. 인물모드 사진의 문제점을 개선할 수 있는 솔루션을 적절히 제시하였다. semantic segmentation mask의 오류를 보완할 수 있는 좋은 솔루션을 이유와 함께 제시하였다.
 
+ ![할머니2](https://github.com/user-attachments/assets/6b981c50-4c52-4bea-bcee-74824c54f265)![할머니](https://github.com/user-attachments/assets/0cbef9b4-9864-4f90-8f3b-11b84d1bb543)
+
+처음 할머니와 할머니가 같이 들고있는 배추를 함께 자르려고 했는데 할머니 '신체' 부분만 잘리는 문제가 생겼다.
+
+이후 모델을 변경하여 
+
+![할머니 누끼 성공](https://github.com/user-attachments/assets/065b3c9d-4ed7-4cbb-871b-557998b61ece)
+성공적으로 누끼를 따는 모습을 볼 수 있다. 
+![강아지 털](https://github.com/user-attachments/assets/7f2e37a2-a4bd-4c61-9fc3-d039a1e90e30)
+
+기존에 실행했었던 강아지 누끼도 털 부분도 세세하게 잘라주는 모습을 볼 수 있다.
+
+
+![배경합성 실패](https://github.com/user-attachments/assets/c02120ff-0911-4792-98fe-ad0d9786bbf8)
+
+
+![배경합성 실패2](https://github.com/user-attachments/assets/cd0c4ce3-58d1-4887-8734-6b21f9b2eb0c)
+
+기존에 피라미드 사진과 배추할머니 사진을 같이 합성해보려고 하였지만 합성 후에 할머니가 사라지는 문제가 생겼다. 
+
+![배경합성 성공](https://github.com/user-attachments/assets/d8981fcc-2f91-4443-a0d2-3d6e69b3fdc5)
+
+코드 수정 후 같이 잘 합성되는 모습을 볼 수 있다.
+
+![배경 합성 성공2](https://github.com/user-attachments/assets/2433e0bb-69c8-4b43-8252-0448c0d54746)
+
+추가적으로 실행한 강아지 합성
+
 ## 코더 회고
 
 - 배운 점
