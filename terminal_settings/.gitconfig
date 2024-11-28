@@ -1,0 +1,23 @@
+[core]
+	editor = vim
+	# editor = code --wait
+	quotepath = false
+	# autocrlf = true    # for Windows (Commit: LF && Checkout: CRLF)
+	# autocrlf = false   # for Windows ONLY (Commit: CRLF)
+	autocrlf = input   # for Linux and Mac (Commit: LF)
+	filemode = false
+[push]
+	followTags = true
+[pull]
+	rebase = false
+[diff]
+	tool = vimdiff
+[credential]
+	helper = store
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
