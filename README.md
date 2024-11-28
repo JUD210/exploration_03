@@ -1,4 +1,4 @@
-# Exploration 02 Project - News Summarization : 민혁, 고은비, 임만순
+# Exploration 03 Project - semantic_segmentation : 민혁, 조규원, 신상호, 고은비
 
 ## 루브릭
 
